@@ -22,15 +22,51 @@ import GlassCase from "./GlassCase";
 import Hotspots from "./Hotspots";
 import { useStore, type Theme } from "@/store/useStore";
 
-const CA_OFFSET = new THREE.Vector2(0.0006, 0.0008);
+// Kept subtle: chromatic aberration softens small text
+const CA_OFFSET = new THREE.Vector2(0.0004, 0.0005);
+const NO_OFFSET = new THREE.Vector2(0, 0);
 
 // The board itself is a physical object and stays dark; the "room" around it changes.
-export const PALETTE: Record<
-  Theme,
-  { bg: string; fog: [number, number]; ambient: [number, string]; sun: number; env: string; vignette: number; noise: number }
-> = {
-  dark: { bg: "#04060a", fog: [45, 110], ambient: [0.35, "#9fb8c8"], sun: 2.2, env: "#07090d", vignette: 0.78, noise: 0.045 },
-  light: { bg: "#e7ebef", fog: [50, 120], ambient: [0.95, "#ffffff"], sun: 2.8, env: "#cfd8e0", vignette: 0.3, noise: 0.02 },
+type Look = {
+  bg: string;
+  fog: [number, number];
+  ambient: [number, string];
+  sun: number;
+  env: string;
+  envGain: number; // scales the studio light panels reflected in metal / glass
+  vignette: number;
+  noise: number;
+  bloom: [threshold: number, intensity: number];
+  aberration: boolean;
+};
+
+// Light is a soft grey studio rather than pure white: bright enough to read as
+// a light theme, dim enough that brass, glass and glowing parts keep contrast.
+export const PALETTE: Record<Theme, Look> = {
+  dark: {
+    bg: "#04060a",
+    fog: [45, 110],
+    ambient: [0.35, "#9fb8c8"],
+    sun: 2.2,
+    env: "#07090d",
+    envGain: 1,
+    vignette: 0.78,
+    noise: 0.03,
+    bloom: [0.9, 1.1],
+    aberration: true,
+  },
+  light: {
+    bg: "#d6dce2",
+    fog: [55, 130],
+    ambient: [0.5, "#eef3f7"],
+    sun: 1.9,
+    env: "#5d6873",
+    envGain: 0.55,
+    vignette: 0.5,
+    noise: 0,
+    bloom: [1.05, 0.75],
+    aberration: false,
+  },
 };
 
 function Lights({ theme }: { theme: Theme }) {
@@ -106,7 +142,7 @@ export default function Experience() {
     >
       {/* Drop resolution on slow GPUs, raise it again when there is headroom */}
       <PerformanceMonitor
-        onDecline={() => setDpr(1)}
+        onDecline={() => setDpr((d) => Math.max(1, d - 0.25))}
         onIncline={() => setDpr(Math.min(window.devicePixelRatio, 1.5))}
         onFallback={() => setDpr(1)}
         flipflops={3}
@@ -119,10 +155,10 @@ export default function Experience() {
       <Lights theme={theme} />
       <Environment key={theme} resolution={256} frames={1}>
         <color attach="background" args={[p.env]} />
-        <Lightformer form="rect" intensity={2.4} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[20, 8, 1]} color="#e6f2ff" />
-        <Lightformer form="rect" intensity={2} position={[-12, 4, 0]} rotation-y={Math.PI / 2} scale={[14, 3, 1]} color="#ffcf8a" />
-        <Lightformer form="rect" intensity={1.6} position={[12, 4, -4]} rotation-y={-Math.PI / 2} scale={[14, 3, 1]} color="#7fe6ff" />
-        <Lightformer form="ring" intensity={3} position={[0, 6, 14]} scale={5} color="#ffffff" />
+        <Lightformer form="rect" intensity={2.4 * p.envGain} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[20, 8, 1]} color="#e6f2ff" />
+        <Lightformer form="rect" intensity={2 * p.envGain} position={[-12, 4, 0]} rotation-y={Math.PI / 2} scale={[14, 3, 1]} color="#ffcf8a" />
+        <Lightformer form="rect" intensity={1.6 * p.envGain} position={[12, 4, -4]} rotation-y={-Math.PI / 2} scale={[14, 3, 1]} color="#7fe6ff" />
+        <Lightformer form="ring" intensity={3 * p.envGain} position={[0, 6, 14]} scale={5} color="#ffffff" />
       </Environment>
 
       <group>
@@ -143,10 +179,10 @@ export default function Experience() {
 
       <CameraRig />
 
-      {/* Supersampled (dpr > 1) screens don't need MSAA on top */}
-      <EffectComposer multisampling={dpr > 1.2 ? 0 : 2}>
-        <Bloom mipmapBlur luminanceThreshold={0.9} luminanceSmoothing={0.25} intensity={1.15} radius={0.72} />
-        <ChromaticAberration offset={CA_OFFSET} radialModulation modulationOffset={0.35} />
+      {/* High-DPI screens are already supersampled; standard screens get 4x MSAA for crisp edges */}
+      <EffectComposer multisampling={dpr >= 1.5 ? 0 : 4}>
+        <Bloom mipmapBlur luminanceThreshold={p.bloom[0]} luminanceSmoothing={0.25} intensity={p.bloom[1]} radius={0.7} />
+        <ChromaticAberration offset={p.aberration ? CA_OFFSET : NO_OFFSET} radialModulation modulationOffset={0.5} />
         <Vignette offset={0.22} darkness={p.vignette} />
         <Noise opacity={p.noise} blendFunction={BlendFunction.OVERLAY} />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />

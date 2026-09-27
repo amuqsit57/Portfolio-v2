@@ -67,13 +67,17 @@ export function labelTexture(opts: {
 
 // The PCB silkscreen: component outlines, designators, board branding.
 export function boardTexture() {
+  // Drawn in 2048-wide logical units, rasterised at 1.5x so silkscreen text
+  // stays legible in close-ups.
   const W = 2048;
+  const K = 1.5;
   const S = W / BOARD.w;
   const H = Math.round(BOARD.d * S);
   const c = document.createElement("canvas");
-  c.width = W;
-  c.height = H;
+  c.width = Math.round(W * K);
+  c.height = Math.round(H * K);
   const g = c.getContext("2d")!;
+  g.scale(K, K);
   const px = (x: number) => (x + BOARD.w / 2) * S;
   const pz = (z: number) => (z + BOARD.d / 2) * S;
   const rnd = mulberry32(7);

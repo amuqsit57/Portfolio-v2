@@ -69,6 +69,9 @@ export default function GlassCase() {
   useEffect(() => {
     floor.uniforms.uLight.value = theme === "light" ? 1 : 0;
     floor.uniforms.uGrid.value.set(theme === "light" ? "#5d6b75" : "#1a8c99");
+    // In a bright room the panes pick up a milky haze; thin them out
+    M.caseGlass.opacity = theme === "light" ? 0.035 : 0.07;
+    M.caseGlass.envMapIntensity = theme === "light" ? 0.8 : 2.5;
   }, [theme, floor]);
 
   const corners: [number, number][] = [
@@ -120,7 +123,7 @@ export default function GlassCase() {
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.35, 0]} receiveShadow>
         <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color={theme === "light" ? "#dfe4e9" : "#05070a"} roughness={0.9} metalness={0.1} />
+        <meshStandardMaterial color={theme === "light" ? "#cfd6dc" : "#05070a"} roughness={0.9} metalness={0.1} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.34, 0]} material={floor} raycast={() => null}>
         <planeGeometry args={[200, 200]} />

@@ -83,29 +83,35 @@ export default function BootScreen() {
         ))}
         {!done && <span className="cursor" />}
       </div>
-      {done && (
-        <div className="boot-prompt">
-          <button
-            className="boot-key"
-            onClick={(e) => {
-              e.stopPropagation();
-              go();
-            }}
-          >
-            POWER ON · EXPLORE ⏎
-          </button>
-          <button
-            className="boot-key alt"
-            onClick={(e) => {
-              e.stopPropagation();
-              go(true);
-            }}
-          >
-            ▶ AUTO TOUR (T)
-          </button>
-          <span className="boot-note">Explore it yourself, or sit back and let the tour walk through everything · sound on</span>
-        </div>
-      )}
+      {/* Always-visible call to action, pinned to the viewport so it can
+          never be pushed off-screen by the log on short displays */}
+      <div className={`boot-cta ${done ? "ready" : ""}`} onClick={(e) => e.stopPropagation()}>
+        {done ? (
+          <>
+            <div className="cta-status">
+              <i /> SYSTEM READY
+            </div>
+            <div className="cta-title">Click to start</div>
+            <p className="cta-text">Power on the board and explore it yourself, or take a guided tour of everything.</p>
+            <button className="cta-primary" onClick={() => go()} autoFocus>
+              ▶ Start exploring <kbd>Enter</kbd>
+            </button>
+            <button className="cta-secondary" onClick={() => go(true)}>
+              Take the auto tour <kbd>T</kbd>
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="cta-status loading">
+              <i /> RUNNING POST · {Math.round((n / LINES.length) * 100)}%
+            </div>
+            <p className="cta-text">Checking hardware…</p>
+            <button className="cta-skip" onClick={() => go()}>
+              Skip and start →
+            </button>
+          </>
+        )}
+      </div>
       <div className="boot-meter">
         <i style={{ width: `${(Math.min(n, LINES.length) / LINES.length) * 100}%` }} />
       </div>
