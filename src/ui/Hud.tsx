@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore, type Section } from "@/store/useStore";
 import { profile } from "@/data/profile";
 import { thermal } from "@/lib/thermal";
@@ -63,6 +63,52 @@ function Tooltip() {
   );
 }
 
+// Onboarding nudge: appears once the board has powered on, disappears as soon
+// as the visitor opens any section (or after a while, or when dismissed).
+function Hint() {
+  const booted = useStore((s) => s.booted);
+  const section = useStore((s) => s.section);
+  const explored = useStore((s) => s.explored);
+  const [show, setShow] = useState(false);
+  const [touch, setTouch] = useState(false);
+
+  useEffect(() => {
+    setTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
+  useEffect(() => {
+    if (!booted) return;
+    const a = setTimeout(() => setShow(true), 3000);
+    const b = setTimeout(() => setShow(false), 20000);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [booted]);
+
+  const visible = show && !explored && !section;
+  return (
+    <div className={`hint ${visible ? "on" : ""}`} role="status" aria-hidden={!visible}>
+      <i className="hint-dot" />
+      <span>
+        <b>{touch ? "Tap" : "Click"} any glowing label or component</b> to see more details, or
+      </span>
+      <button
+        className="hint-tour"
+        onClick={() => {
+          sfx.click();
+          useStore.getState().startTour();
+        }}
+        tabIndex={visible ? 0 : -1}
+      >
+        ▶ take the auto tour
+      </button>
+      <button onClick={() => setShow(false)} aria-label="Dismiss hint" tabIndex={visible ? 0 : -1}>
+        ✕
+      </button>
+    </div>
+  );
+}
+
 export default function Hud() {
   const booted = useStore((s) => s.booted);
   const section = useStore((s) => s.section);
@@ -70,10 +116,13 @@ export default function Hud() {
   const close = useStore((s) => s.close);
   const muted = useStore((s) => s.muted);
   const toggleMute = useStore((s) => s.toggleMute);
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
+  const touring = useStore((s) => s.tour.on);
 
   return (
     <>
-      <div className={`hud ${booted ? "on" : ""} ${section ? "has-panel" : ""}`}>
+      <div className={`hud ${booted ? "on" : ""} ${section ? "has-panel" : ""} ${touring ? "touring" : ""}`}>
         <div className="brand">
           <h1>
             Abdul <span>Muqsit</span>
@@ -87,8 +136,32 @@ export default function Hud() {
           CLICK HARDWARE · 1–6 · ← → · ESC
         </div>
         <div className="corner right">
+          {!touring && (
+            <button
+              className="chip-btn tour-btn"
+              onClick={() => {
+                sfx.click();
+                useStore.getState().startTour();
+              }}
+              aria-label="Start auto tour"
+            >
+              ▶<span className="lbl"> AUTO TOUR</span>
+            </button>
+          )}
+          <button
+            className="chip-btn"
+            onClick={() => {
+              sfx.click();
+              setTheme(theme === "dark" ? "light" : "dark");
+            }}
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+          >
+            {theme === "dark" ? "☀" : "☾"}
+            <span className="lbl">{theme === "dark" ? " LIGHT" : " DARK"}</span>
+          </button>
           <button className="chip-btn" onClick={toggleMute} aria-label="Toggle sound">
-            {muted ? "SOUND OFF" : "SOUND ON"}
+            <span style={{ textDecoration: muted ? "line-through" : "none" }}>♪</span>
+            <span className="lbl">{muted ? " SOUND OFF" : " SOUND ON"}</span>
           </button>
           {section && (
             <button
@@ -97,11 +170,13 @@ export default function Hud() {
                 sfx.close();
                 close();
               }}
+              aria-label="Back to overview"
             >
-              OVERVIEW
+              ⌂<span className="lbl"> OVERVIEW</span>
             </button>
           )}
         </div>
+        <Hint />
         <nav className="bus" aria-label="Sections">
           {NAV.map((n) => (
             <button

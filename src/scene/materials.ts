@@ -16,19 +16,6 @@ export const M = {
   pcb: std("#0b1c18", 0.25, 0.55),
   ceramic: std("#8a6b44", 0.1, 0.5),
   white: std("#d9dad2", 0.1, 0.5),
-  glass: new THREE.MeshPhysicalMaterial({
-    color: "#cfe9ff",
-    metalness: 0,
-    roughness: 0.04,
-    transmission: 1,
-    thickness: 0.6,
-    ior: 1.45,
-    clearcoat: 1,
-    clearcoatRoughness: 0.05,
-    transparent: true,
-    opacity: 1,
-    envMapIntensity: 1.4,
-  }),
   // Non-refractive glass: keeps what's inside (the CPU die) crisp and readable
   clearGlass: new THREE.MeshPhysicalMaterial({
     color: "#dff3ff",
@@ -41,13 +28,12 @@ export const M = {
     envMapIntensity: 0.45,
     depthWrite: false,
   }),
-  caseGlass: new THREE.MeshPhysicalMaterial({
+  caseGlass: new THREE.MeshStandardMaterial({
     color: "#9fd8ff",
-    metalness: 0.1,
-    roughness: 0.02,
+    metalness: 0.3,
+    roughness: 0.03,
     transparent: true,
     opacity: 0.07,
-    clearcoat: 1,
     envMapIntensity: 2.5,
     side: THREE.DoubleSide,
     depthWrite: false,

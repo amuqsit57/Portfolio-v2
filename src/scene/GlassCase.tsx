@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { labelTexture, SANS, MONO } from "@/lib/textures";
 import { profile } from "@/data/profile";
 import { IO } from "./layout";
 import { M } from "./materials";
 import { floorMaterial } from "./shaders";
+import { useStore } from "@/store/useStore";
 
 const X0 = -10.02;
 const X1 = 10.55;
@@ -64,6 +65,11 @@ export default function GlassCase() {
     [],
   );
   const floor = useMemo(floorMaterial, []);
+  const theme = useStore((s) => s.theme);
+  useEffect(() => {
+    floor.uniforms.uLight.value = theme === "light" ? 1 : 0;
+    floor.uniforms.uGrid.value.set(theme === "light" ? "#5d6b75" : "#1a8c99");
+  }, [theme, floor]);
 
   const corners: [number, number][] = [
     [X0, Z0],
@@ -114,7 +120,7 @@ export default function GlassCase() {
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.35, 0]} receiveShadow>
         <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#05070a" roughness={0.9} metalness={0.1} />
+        <meshStandardMaterial color={theme === "light" ? "#dfe4e9" : "#05070a"} roughness={0.9} metalness={0.1} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.34, 0]} material={floor} raycast={() => null}>
         <planeGeometry args={[200, 200]} />

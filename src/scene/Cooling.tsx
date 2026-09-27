@@ -104,7 +104,7 @@ function Reservoir() {
         <meshStandardMaterial map={plate} metalness={0.8} roughness={0.35} />
       </mesh>
       {/* Glass cylinder + coolant column */}
-      <mesh material={M.glass} position={[0, 0.46 + (TOP - 0.46) / 2, 0]}>
+      <mesh material={M.clearGlass} position={[0, 0.46 + (TOP - 0.46) / 2, 0]}>
         <cylinderGeometry args={[0.86, 0.86, TOP - 0.46, 48, 1, true]} />
       </mesh>
       <mesh material={liquid} position={[0, 0.5 + 1.3, 0]}>
@@ -135,7 +135,6 @@ function Reservoir() {
           </mesh>
         );
       })}
-      <pointLight color="#19e0ff" intensity={6} distance={6} decay={1.5} position={[0, 1.8, 0]} />
     </group>
   );
 }

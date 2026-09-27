@@ -37,17 +37,23 @@ export default function BootScreen() {
     return () => clearTimeout(id);
   }, [n, done]);
 
-  const go = useCallback(() => {
-    if (useStore.getState().booted) return;
-    setN(LINES.length);
-    sfx.boot();
-    boot();
-    setTimeout(() => setGone(true), 1300);
-  }, [boot]);
+  const go = useCallback(
+    (tour = false) => {
+      if (useStore.getState().booted) return;
+      setN(LINES.length);
+      sfx.boot();
+      boot();
+      setTimeout(() => setGone(true), 1300);
+      // Let the power-on sweep and camera swoop finish before the tour moves off
+      if (tour) setTimeout(() => useStore.getState().startTour(), 3000);
+    },
+    [boot],
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") go();
+      if (e.key === "t" || e.key === "T") go(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -56,7 +62,7 @@ export default function BootScreen() {
   if (gone) return null;
 
   return (
-    <div className={`boot ${booted ? "off" : ""}`} onClick={go} role="button" aria-label="Power on the portfolio">
+    <div className={`boot ${booted ? "off" : ""}`} onClick={() => go()} role="button" aria-label="Power on the portfolio">
       <div className="boot-head">
         <span>POST · POWER-ON SELF TEST</span>
         <span>MB-AM01 · {profile.location.toUpperCase()}</span>
@@ -79,8 +85,25 @@ export default function BootScreen() {
       </div>
       {done && (
         <div className="boot-prompt">
-          <span className="boot-key">PRESS ENTER OR CLICK TO POWER ON</span>
-          <span style={{ color: "var(--dim)", fontSize: 12 }}>sound on · best with a mouse</span>
+          <button
+            className="boot-key"
+            onClick={(e) => {
+              e.stopPropagation();
+              go();
+            }}
+          >
+            POWER ON · EXPLORE ⏎
+          </button>
+          <button
+            className="boot-key alt"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(true);
+            }}
+          >
+            ▶ AUTO TOUR (T)
+          </button>
+          <span className="boot-note">Explore it yourself, or sit back and let the tour walk through everything · sound on</span>
         </div>
       )}
       <div className="boot-meter">

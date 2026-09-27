@@ -7,11 +7,11 @@ export const profile = {
   focus: "Web & Mobile · Full Stack",
   location: "Islamabad, Pakistan",
   email: "Amuqsit57@gmail.com",
-  // TODO: replace with your real profile URLs
+  // Leave a link as "" to hide it everywhere (contact card + terminal).
   links: {
-    linkedin: "https://www.linkedin.com/in/",
-    github: "https://github.com/",
-  },
+    linkedin: "",
+    github: "https://github.com/amuqsit57",
+  } as Record<"linkedin" | "github", string>,
   bio: [
     "Full-stack software engineer with 4+ years building production web and mobile products across Next.js, React, React Native, NestJS, GraphQL, Node.js and Python.",
     "I care about interfaces that feel alive and backends that stay calm under load: CI/CD pipelines, Git workflows, Docker and cloud deployments are part of how I ship.",

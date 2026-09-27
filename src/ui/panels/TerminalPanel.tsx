@@ -139,7 +139,7 @@ export default function TerminalPanel() {
           { t: "send        compose a message to me" },
           { t: "email       open your mail client" },
           { t: "copy        copy my email address" },
-          { t: "linkedin    open LinkedIn" },
+          ...(profile.links.linkedin ? [{ t: "linkedin    open LinkedIn" }] : []),
           { t: "github      open GitHub" },
           { t: "skills      core stack" },
           { t: "exp         experience modules" },
@@ -154,8 +154,7 @@ export default function TerminalPanel() {
       case "social":
         return print(
           { t: `email     ${profile.email}` },
-          { t: `linkedin  ${profile.links.linkedin}` },
-          { t: `github    ${profile.links.github}` },
+          ...(Object.entries(profile.links) as [string, string][]).filter(([, u]) => u).map(([k, u]) => ({ t: `${k.padEnd(9)} ${u}` })),
         );
       case "send":
       case "message":
@@ -171,6 +170,7 @@ export default function TerminalPanel() {
         return;
       case "linkedin":
       case "github":
+        if (!profile.links[c]) return print({ t: `${c}: not configured`, k: "err" });
         window.open(profile.links[c], "_blank", "noopener");
         return print({ t: `Opening ${c} ↗`, k: "ok" });
       case "skills":
@@ -240,13 +240,15 @@ export default function TerminalPanel() {
           <span>{profile.email}</span>
         </button>
         <div>
-          <a href={profile.links.linkedin} target="_blank" rel="noreferrer" style={{ marginBottom: 6 }}>
-            <small>LINKEDIN ↗</small>
-            <span>Connect</span>
-          </a>
+          {profile.links.linkedin && (
+            <a href={profile.links.linkedin} target="_blank" rel="noreferrer" style={{ marginBottom: 6 }}>
+              <small>LINKEDIN ↗</small>
+              <span>Connect</span>
+            </a>
+          )}
           <a href={profile.links.github} target="_blank" rel="noreferrer">
             <small>GITHUB ↗</small>
-            <span>Browse code</span>
+            <span>{profile.links.github.replace("https://", "")}</span>
           </a>
         </div>
       </div>

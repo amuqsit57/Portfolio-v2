@@ -11,6 +11,10 @@ An interactive 3D portfolio built as a living, mechanical motherboard inside a b
 | **BIOS chip + CMOS cell** | Education | BIOS setup utility (CMOS rated 3.91 V) |
 | **Rear I/O · SFP+** | Contact | Fiber cable plugs in → live terminal (`help`, `send`, `whoami`, `cd cpu` …) |
 
+**Auto tour:** press ▶ AUTO TOUR on the boot screen (or `T`), or in the HUD, for a guided walk through every section. It pauses with `Space` or when you scroll the panel yourself, and ends as soon as you click anything.
+
+**Themes:** light (default) and dark, toggled from the HUD and remembered per browser.
+
 ## Stack
 Next.js 15 (App Router) · React 19 · React Three Fiber · drei · postprocessing (bloom, CA, vignette, ACES) · custom GLSL shaders · framer-motion · zustand · WebAudio-synthesized UI sounds (no audio files).
 
@@ -25,7 +29,7 @@ npm run build && npm start
 
 ## Edit content
 All text lives in [`src/data/profile.ts`](src/data/profile.ts): bio, stats, skill tree, experience, projects, archive, education, links.
-**Set your real LinkedIn / GitHub URLs in `profile.links`.**
+Links in `profile.links` that are left as `""` are hidden everywhere (LinkedIn is empty for now).
 
 ## Controls
-Drag to orbit · scroll to zoom · click hardware · `1–6` jump to sections · `← →` cycle cards / modules · `Esc` back to overview.
+Drag to orbit · scroll to zoom · click hardware or its floating label · `1–6` jump to sections · `← →` cycle cards / modules · `Esc` back to overview · `T` start tour (boot screen) · `Space` pause tour.

@@ -8,12 +8,21 @@ import { sfx } from "@/lib/sfx";
 import BootScreen from "./BootScreen";
 import Hud from "./Hud";
 import Panels from "./panels/Panels";
+import Tour from "./Tour";
 
 const Experience = dynamic(() => import("@/scene/Experience"), { ssr: false });
 
 const ORDER: Section[] = ["cpu", "memory", "pcie", "storage", "bios", "io"];
 
 export default function Portfolio() {
+  // Restore the saved theme (the inline script in layout already painted it)
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem("mb-theme");
+      if (t === "light" || t === "dark") useStore.getState().setTheme(t);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = useStore.getState();
@@ -27,6 +36,11 @@ export default function Portfolio() {
         return;
       }
       if (typing) return;
+      if (e.key === " " && s.tour.on) {
+        e.preventDefault();
+        s.pauseTour(!s.tour.paused);
+        return;
+      }
       const n = Number(e.key);
       if (n >= 1 && n <= ORDER.length) {
         sfx.click();
@@ -47,6 +61,7 @@ export default function Portfolio() {
       <Experience />
       <Hud />
       <Panels />
+      <Tour />
       <BootScreen />
     </main>
   );

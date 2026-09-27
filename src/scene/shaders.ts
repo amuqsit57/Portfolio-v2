@@ -267,12 +267,13 @@ export function beamMaterial(color: THREE.ColorRepresentation) {
 
 export function floorMaterial() {
   return new THREE.ShaderMaterial({
-    uniforms: { ...globals },
+    uniforms: { ...globals, uGrid: { value: col("#1a8c99") }, uLight: { value: 0 } },
     transparent: true,
     depthWrite: false,
     vertexShader: uvVert,
     fragmentShader: /* glsl */ `
-      uniform float uTime, uPower;
+      uniform float uTime, uPower, uLight;
+      uniform vec3 uGrid;
       varying vec3 vWorld;
       void main(){
         vec2 p = vWorld.xz;
@@ -281,8 +282,10 @@ export function floorMaterial() {
         float d = length(p) ;
         float fade = smoothstep(60., 12., d);
         float ring = smoothstep(1.5, 0., abs(d - mod(uTime * 6., 60.))) * 0.5;
-        vec3 c = vec3(0.1, 0.55, 0.6) * (line * 0.12 + ring * line * 0.8) * uPower;
-        gl_FragColor = vec4(c, fade * (line * 0.8 + 0.02));
+        // Dark room: faint glowing lines. Light room: soft graphite lines on a pale floor.
+        vec3 c = mix(uGrid * (line * 0.12 + ring * line * 0.8) * uPower, uGrid, uLight);
+        float a = mix(line * 0.8 + 0.02, line * 0.22 + ring * line * 0.25, uLight);
+        gl_FragColor = vec4(c, fade * a);
       }
     `,
   });
